@@ -1,0 +1,91 @@
+# 顶层键 = 节点名（slam_toolbox），launch 里 name='slam_toolbox' 与之对应
+slam_toolbox:
+  ros__parameters:
+
+    # ------------------------------------------------------------------
+    # 一、求解器参数（图优化用哪个优化器）
+    # ------------------------------------------------------------------
+    # CeresSolver：Google 开源的最小二乘优化库（和 Cartographer 同款）
+    solver_plugin: solver_plugins::CeresSolver
+    ceres_linear_solver: SPARSE_NORMAL_CHOLESKY   # 线性求解器（稀疏，适合大图）
+    ceres_preconditioner: SCHUR_JACOBI            # 预条件器
+    ceres_trust_strategy: LEVENBERG_MARQUARDT     # 信任域策略（LM算法）
+    ceres_dogleg_type: TRADITIONAL_DOGLEG         # 狗腿法类型
+    ceres_loss_function: None                     # 损失函数（None=平方误差）
+
+    # ------------------------------------------------------------------
+    # 二、ROS 基础参数（坐标系 + 输入）
+    # ------------------------------------------------------------------
+    odom_frame: odom_ekfcombined    # 里程计坐标系（EKF 输出，remap 来的）
+    map_frame: map               # 地图坐标系（建出的地图所在的系）
+    base_frame: base_footprint   # 机器人本体坐标系
+    scan_topic: /scan            # 激光话题（建图核心输入）
+    mode: mapping #localization  # ★ 模式：mapping=建图，localization=重定位
+    scan_queue_size: 5           # 激光消息缓存队列
+
+    # ------------------------------------------------------------------
+    # 三、地图复用（重定位时用，被注释 = 当前不启用）
+    # ------------------------------------------------------------------
+    # 如果想加载已有地图继续建图/定位，取消注释并配置：
+    #map_file_name: test_steve          # 已有地图文件名
+    #map_start_pose: [0.0, 0.0, 0.0]  # 起始位姿
+    #map_start_at_dock: true            # 从充电桩开始
+
+    # ------------------------------------------------------------------
+    # 四、日志与发布参数
+    # ------------------------------------------------------------------
+    debug_logging: false            # 是否打印调试日志
+    throttle_scans: 1               # 每N帧取1帧（1=全用）
+    transform_publish_period: 0.02  # 发布TF的周期（0.02秒=50Hz）
+    map_update_interval: 5.0        # 地图更新周期（秒）
+    resolution: 0.05                # 地图栅格分辨率（每格5cm）
+    max_laser_range: 20.0           # 激光最大有效距离
+    minimum_time_interval: 0.5      # 两次扫描匹配的最小时间间隔
+    transform_timeout: 0.2          # TF查找超时
+    tf_buffer_duration: 30.         # TF缓存时长（秒）
+    stack_size_to_use: 40000000     # 程序栈大小（序列化大图时需要）
+    enable_interactive_mode: true   # 是否开启交互模式（RViz 里可手动拖拽修正）
+
+    # ------------------------------------------------------------------
+    # 五、通用建图参数
+    # ------------------------------------------------------------------
+    use_scan_matching: true         # 是否用扫描匹配
+    use_scan_barycenter: true       # 是否用扫描质心（提高匹配稳定性）
+    minimum_travel_distance: 0.0    # 最小移动距离（小于则不处理）
+    minimum_travel_heading: 0.5     # 最小转动角度（小于则不处理）
+    scan_buffer_size: 10            # 扫描缓存大小（记住最近N帧）
+    scan_buffer_maximum_scan_distance: 10.0  # 缓存扫描的最大距离
+    link_match_minimum_response_fine: 0.1    # 相邻匹配的最小响应（精细）
+    link_scan_maximum_distance: 1.5          # 相邻扫描最大距离
+    loop_search_maximum_distance: 3.0        # 回环搜索最大距离
+    do_loop_closing: true           # ★ 是否开启回环检测
+    loop_match_minimum_chain_size: 10        # 回环匹配的最小链长
+    loop_match_maximum_variance_coarse: 3.0  # 回环匹配最大方差（粗）
+    loop_match_minimum_response_coarse: 0.35 # 回环最小响应（粗）
+    loop_match_minimum_response_fine: 0.45   # 回环最小响应（精细）
+
+    # ------------------------------------------------------------------
+    # 六、相关搜索参数（扫描匹配时的搜索空间）
+    # ------------------------------------------------------------------
+    correlation_search_space_dimension: 0.5     # 搜索空间维度（±0.5m）
+    correlation_search_space_resolution: 0.01   # 搜索分辨率（1cm）
+    correlation_search_space_smear_deviation: 0.1  # 搜索模糊化偏差
+
+    # ------------------------------------------------------------------
+    # 七、回环搜索参数
+    # ------------------------------------------------------------------
+    loop_search_space_dimension: 8.0     # 回环搜索空间（±8m）
+    loop_search_space_resolution: 0.05   # 回环搜索分辨率（5cm）
+    loop_search_space_smear_deviation: 0.03  # 回环搜索模糊化
+
+    # ------------------------------------------------------------------
+    # 八、扫描匹配参数（匹配得分怎么算）
+    # ------------------------------------------------------------------
+    distance_variance_penalty: 0.5   # 距离方差惩罚（惩罚距离不符）
+    angle_variance_penalty: 1.0      # 角度方差惩罚（惩罚角度不符）
+    fine_search_angle_offset: 0.00349   # 精细搜索角度偏移（~0.2°）
+    coarse_search_angle_offset: 0.349   # 粗搜索角度偏移（~20°）
+    coarse_angle_resolution: 0.0349     # 粗搜索角度分辨率（~2°）
+    minimum_angle_penalty: 0.9          # 最小角度惩罚
+    minimum_distance_penalty: 0.5       # 最小距离惩罚
+    use_response_expansion: true        # 是否用响应扩展

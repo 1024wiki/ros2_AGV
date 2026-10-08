@@ -1,0 +1,11 @@
+build/
+install/
+log/
+COLCON_IGNORE
+.vscode/
+*.swp
+*.log
+*.bag
+*.db3
+src/data/
+src/wheeltec_mic_aiui/AIUI/assets/esr/esr.jet
